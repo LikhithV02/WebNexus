@@ -79,5 +79,8 @@ uv.lock
 # Logs
 *.log
 
+# Chunking comparison output directories
+chunking_comparison_*/
+
 .claude/
 data/
