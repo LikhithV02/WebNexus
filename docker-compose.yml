@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # FastAPI Web Server
+  webnexus-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: webnexus-api
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist data (models, database, vectors)
+      - webnexus-data:/app/data
+    environment:
+      - DATABASE_URL=sqlite:////app/data/db/webnexus.db
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - webnexus-network
+
+  # MCP Server (optional - uncomment to enable)
+  # webnexus-mcp:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: webnexus-mcp
+  #   command: ["python", "-m", "webnexus.mcp.server", "--stdio"]
+  #   ports:
+  #     - "8051:8051"
+  #   volumes:
+  #     - webnexus-data:/app/data
+  #   environment:
+  #     - DATABASE_URL=sqlite:////app/data/db/webnexus.db
+  #     - MCP_PORT=8051
+  #   restart: unless-stopped
+  #   networks:
+  #     - webnexus-network
+  #   depends_on:
+  #     - webnexus-api
+
+volumes:
+  # Named volume for persistent data
+  webnexus-data:
+    driver: local
+
+networks:
+  webnexus-network:
+    driver: bridge

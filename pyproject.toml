@@ -1,0 +1,242 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "webnexus"
+version = "0.1.0"
+description = "WebNexus: Simplified Web Crawler & RAG System"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "WebNexus Team"}
+]
+keywords = ["web-crawler", "rag", "mcp", "fastapi"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    # Core framework dependencies
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+    
+    # Web crawling
+    "crawl4ai==0.6.2",
+    "httpx>=0.24.0",
+    
+    # MCP integration
+    "mcp==1.7.1",
+    
+    # AI/ML dependencies
+    "sentence-transformers>=3.0.0",
+    "torch>=2.0.0",
+    "transformers>=4.36.0",
+    
+    # Reranking (cross-encoder models via sentence-transformers)
+    "rank-bm25>=0.2.2",
+    
+    # Database and storage
+    "sqlalchemy>=2.0.0",
+    "numpy>=1.24.0",
+    "faiss-cpu>=1.7.4",
+    
+    # Data processing
+    "pydantic>=2.0.0",
+    "python-multipart>=0.0.20",
+    "pypdf2>=3.0.1",
+    "python-docx>=1.1.2",
+    "markdown>=3.8",
+    
+    # Utilities
+    "python-jose[cryptography]>=3.3.0",
+    "aiolimiter>=1.1.0",
+    "aiofiles>=23.0.0",
+    "python-dotenv>=1.0.0",
+    
+    # Type hints
+    "typing-extensions>=4.8.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.4.0",
+]
+
+test = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "httpx>=0.24.0",
+    "pytest-mock>=3.11.0",
+]
+
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocs-gen-files>=0.5.0",
+    "mkdocstrings[python]>=0.23.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/WebNexus/WebNexus"
+Documentation = "https://WebNexus.readthedocs.io"
+Repository = "https://github.com/WebNexus/WebNexus.git"
+"Bug Tracker" = "https://github.com/WebNexus/WebNexus/issues"
+
+[project.scripts]
+webnexus = "webnexus.api.main:main"
+webnexus-mcp = "webnexus.mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["webnexus"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/webnexus",
+    "/tests",
+    "/README.md",
+    "/pyproject.toml",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 100
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "crawl4ai.*",
+    "mcp.*",
+    "sqlite_vss.*",
+    "sentence_transformers.*",
+    "mxbai_rerank.*",
+    "transformers.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "-ra",
+    "--cov=src",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long, handled by black
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["B011"]
+
+[tool.ruff.isort]
+known-first-party = ["src"]
+
+[tool.ruff.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
