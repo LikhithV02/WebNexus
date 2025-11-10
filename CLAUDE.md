@@ -96,30 +96,33 @@ uv run python scripts/test_mcp.py
 
 ## Document Chunking Strategies
 
-WebNexus supports three chunking strategies. Default is "original" (matches Archon project).
+WebNexus supports four chunking strategies. Default is "original" (matches Archon project).
 
 ### Strategy Comparison
 
-| Feature | Original Archon | Advanced Custom | Specialized |
-|---------|------------------|------------------|-------------|
-| **Chunk Size** | 5000 chars | 1000 chars | Variable |
-| **Overlap** | None | 100 chars | None |
-| **Boundaries** | 3 types | 5+ types | Content-aware |
-| **Performance** | Fast | Moderate | Fast |
-| **Quality** | Good | High | Excellent |
-| **Use Case** | General docs | RAG optimization | Code/structured data |
+| Feature | Original Archon | Advanced Custom | Specialized | **Documentation** |
+|---------|------------------|------------------|-------------|------------------|
+| **Chunk Size** | 5000 chars | 1000 chars | Variable | **4000 tokens** |
+| **Overlap** | None | 100 chars | None | **None** |
+| **Boundaries** | 3 types | 5+ types | Content-aware | **Markdown-aware** |
+| **Merging** | No | No | No | **Yes (smart)** |
+| **Hierarchy** | No | No | No | **Yes** |
+| **Performance** | Fast | Moderate | Fast | **Moderate** |
+| **Quality** | Good | High | Excellent | **Excellent** |
+| **Use Case** | General docs | RAG optimization | Code/data | **Package docs** |
 
 ### Configuration
 
 ```python
 # In settings.py or environment variables
-CHUNKING_STRATEGY=original     # Default - matches Archon
-CHUNKING_STRATEGY=advanced     # Better for RAG
-CHUNKING_STRATEGY=specialized  # Best for code/markdown
+CHUNKING_STRATEGY=original       # Default - matches Archon
+CHUNKING_STRATEGY=advanced       # Better for RAG
+CHUNKING_STRATEGY=specialized    # Best for code/markdown
+CHUNKING_STRATEGY=documentation  # Best for package documentation
 
 # Runtime switching
 from src.config.settings import settings
-settings.chunking_strategy = "advanced"
+settings.chunking_strategy = "documentation"
 ```
 
 **Original Archon Strategy:**
@@ -139,6 +142,16 @@ settings.chunking_strategy = "advanced"
 - Markdown structure preservation (headers, lists, tables)
 - HTML element boundary detection
 - JSON/XML structure awareness
+
+**Documentation Strategy:** ⭐ NEW
+- 4000 token chunks (not characters, uses tiktoken)
+- No overlap between chunks
+- Markdown structure preservation (code blocks, tables, lists in separate chunks)
+- Header hierarchy analysis (#, ##, ###)
+- Smart merging: combines chunks if (1) under token limit + (2) same hierarchy + (3) ≥80% similar
+- Minimal splitting: only when exceeding token limit
+- Perfect for package documentation with complex structure
+- See `DOCUMENTATION_CHUNKING.md` for detailed documentation
 
 ## API Reference
 

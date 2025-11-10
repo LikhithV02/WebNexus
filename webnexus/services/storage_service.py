@@ -17,6 +17,7 @@ from ..services.vector_service import vector_service
 from ..utils.chunking import default_chunker, SpecializedChunkers, DocumentChunk as ChunkingDocumentChunk
 from ..utils.original_chunking import original_adapter
 from ..utils.document_processing import DocumentProcessor
+from ..utils.documentation_chunking import DocumentationChunker, DocumentationChunk
 
 logger = logging.getLogger(__name__)
 
@@ -260,7 +261,42 @@ class StorageService:
             elif chunking_strategy == "advanced":
                 # Use advanced chunker with boundary detection and overlap
                 chunks = default_chunker.chunk_document(document.content, document.url)
-            
+
+            elif chunking_strategy == "documentation":
+                # Use documentation chunker for package documentation
+                # Token-based, no overlap, markdown-aware, smart merging
+                doc_chunker = DocumentationChunker(
+                    max_tokens=settings.documentation_max_tokens,
+                    similarity_threshold=settings.documentation_similarity_threshold,
+                    max_level_difference=settings.documentation_max_level_difference,
+                    enable_merging=settings.documentation_enable_merging,
+                    similarity_method=settings.documentation_similarity_method
+                )
+
+                doc_chunks = doc_chunker.chunk_document(
+                    document.content,
+                    document.url,
+                    {
+                        "source_id": document.source_id,
+                        "crawl_type": document.crawl_type,
+                        "document_id": document_id
+                    }
+                )
+
+                # Convert DocumentationChunk to ChunkingDocumentChunk format
+                chunks = []
+                for doc_chunk in doc_chunks:
+                    chunk = ChunkingDocumentChunk(
+                        content=doc_chunk.content,
+                        start_char=doc_chunk.start_char,
+                        end_char=doc_chunk.end_char,
+                        chunk_index=doc_chunk.chunk_index,
+                        word_count=doc_chunk.word_count,
+                        char_count=doc_chunk.char_count,
+                        content_hash=doc_chunk.content_hash
+                    )
+                    chunks.append(chunk)
+
             else:
                 # Default fallback to original strategy
                 logger.warning(f"Unknown chunking strategy '{chunking_strategy}', falling back to original")

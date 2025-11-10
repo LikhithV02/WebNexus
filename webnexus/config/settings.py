@@ -41,10 +41,17 @@ class Settings(BaseSettings):
     vector_index_path: str = "./data/vectors/faiss_index.bin"
     
     # Chunking strategy settings
-    chunking_strategy: str = "original"  # "original", "advanced", "specialized"
-    original_chunk_size: int = 5000 
+    chunking_strategy: str = "original"  # "original", "advanced", "specialized", "documentation"
+    original_chunk_size: int = 5000
     advanced_chunk_size: int = 1000  # For advanced chunker
     chunk_overlap: int = 100  # Only for advanced chunker
+
+    # Documentation chunking settings (for "documentation" strategy)
+    documentation_max_tokens: int = 4000  # Max tokens per chunk (not characters!)
+    documentation_similarity_threshold: float = 0.80  # Similarity threshold for merging (80%)
+    documentation_max_level_difference: int = 0  # Max header level difference for same hierarchy
+    documentation_enable_merging: bool = True  # Enable smart chunk merging
+    documentation_similarity_method: str = "cosine"  # Similarity calculation method
     
     # API settings
     cors_origins: list = ["http://localhost:3000", "http://127.0.0.1:3000", "http://localhost:8000"]
